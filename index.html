@@ -299,11 +299,15 @@
         <nav class="bg-slate-900 text-white sticky top-0 z-40 shadow-lg">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-20 items-center">
-                    <div class="flex items-center cursor-pointer group" onclick="triggerEasterEgg()" title="Click me 3 times!">
-                        <i class="fa-solid fa-shield-halved text-amber-500 text-3xl mr-3 group-hover:scale-110 transition-transform"></i>
-                        <div>
+                   <div class="flex items-center cursor-pointer group relative" onclick="triggerEasterEgg()">
+                        <i class="fa-solid fa-shield-halved text-amber-500 text-3xl mr-3 animate-pulse group-hover:animate-none group-hover:scale-110 group-hover:text-amber-400 transition-all duration-300"></i>
+                        <div class="relative">
                             <span class="font-bold text-xl tracking-wider uppercase block">JR Recovery</span>
-                            <span class="text-xs text-slate-400 tracking-widest uppercase">Process Service</span>
+                            <span class="text-xs text-slate-400 tracking-widest uppercase transition-opacity duration-300 group-hover:opacity-0">Process Service</span>
+                            
+                            <span class="absolute bottom-0 left-0 text-[10px] text-red-500 font-mono tracking-[0.3em] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
+                                [ EXECUTE CODE 3 ]
+                            </span>
                         </div>
                     </div>
                     <div class="hidden md:flex space-x-8 text-sm font-semibold uppercase tracking-wide">
