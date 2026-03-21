@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JR Recovery & Process Service</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Custom Styles for the Radar Game and Transitions */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* Entrance Overlay */
+        #entrance-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #020617; /* Slate 950 */
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 1s ease-in-out, transform 1s ease-in-out;
+        }
+
+        /* Radar CSS */
+        .radar-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            border: 2px solid rgba(16, 185, 129, 0.5); /* Emerald 500 */
+            background: radial-gradient(circle, rgba(2,6,23,1) 0%, rgba(2,44,34,1) 100%);
+            box-shadow: 0 0 40px rgba(16, 185, 129, 0.2);
+            overflow: hidden;
+        }
+
+        .radar-grid {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(16, 185, 129, 0.2) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(16, 185, 129, 0.2) 1px, transparent 1px);
+            background-size: 30px 30px;
+            border-radius: 50%;
+        }
+
+        .radar-sweep {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 150px;
+            height: 150px;
+            background: conic-gradient(from 0deg, rgba(16, 185, 129, 0) 70%, rgba(16, 185, 129, 0.8) 100%);
+            transform-origin: 0% 0%;
+            animation: sweep 3s linear infinite;
+        }
+
+        @keyframes sweep {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .blip {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background-color: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #10b981, 0 0 20px #10b981;
+            cursor: pointer;
+            opacity: 0;
+            transition: transform 0.2s;
+        }
+
+        .blip:hover {
+            transform: scale(1.5);
+            background-color: #34d399;
+        }
+
+        @keyframes ping {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .blip.active {
+            animation: ping 1.5s infinite;
+        }
+
+        /* Main Site Content */
+        #main-site {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 1s ease-in-out;
+            background-color: #f8fafc; /* Slate 50 */
+            color: #0f172a;
+        }
+
+        /* Police Light Easter Egg */
+        .police-lights {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, red 50%, blue 50%);
+            background-size: 200% 100%;
+            animation: flash 0.5s infinite linear;
+            z-index: 100;
+            display: none;
+        }
+
+        @keyframes flash {
+            0% { background-position: 100% 0; }
+            100% { background-position: -100% 0; }
+        }
+
+        /* C4 Technologies X-Ray Link & Portal Styles */
+        .c4-xray-link {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        .c4-xray-scanner {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.6), transparent);
+            z-index: 1;
+            transform: skewX(-20deg);
+        }
+        .c4-xray-link:hover .c4-xray-scanner {
+            animation: xray-sweep 1.5s infinite;
+        }
+        @keyframes xray-sweep {
+            0% { left: -100%; }
+            100% { left: 200%; }
+        }
+        #c4-portal {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out;
+        }
+        #c4-portal.active {
+            display: flex;
+            opacity: 1;
+        }
+        .massive-radar {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 150vw;
+            height: 150vw;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            background: repeating-radial-gradient(
+                rgba(6, 182, 212, 0.05) 0%,
+                rgba(6, 182, 212, 0.05) 5%,
+                transparent 5%,
+                transparent 10%
+            );
+            pointer-events: none;
+        }
+        .massive-sweep {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 75vw;
+            height: 75vw;
+            transform-origin: 0% 0%;
+            background: conic-gradient(from 0deg, transparent 70%, rgba(6, 182, 212, 0.4) 100%);
+            animation: sweep 6s linear infinite;
+            pointer-events: none;
+        }
+
+        /* Map Modal Styles */
+        #map-modal {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        #map-modal.active {
+            display: flex;
+            opacity: 1;
+        }
+        .map-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 0.5rem;
+            background: #020617;
+            border: 1px solid #334155;
+            height: 400px;
+        }
+        .map-radar-sweep {
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, rgba(16, 185, 129, 0) 70%, rgba(16, 185, 129, 0.5) 100%);
+            animation: sweep 3s linear infinite;
+            pointer-events: none;
+            mix-blend-mode: screen;
+            z-index: 5;
+        }
+        .svg-map {
+            width: 100%;
+            height: 100%;
+            stroke: #10b981;
+            stroke-width: 1.5;
+            fill: rgba(16, 185, 129, 0.05);
+            filter: drop-shadow(0 0 10px rgba(16,185,129,0.2));
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 2;
+        }
+        .map-blip {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #ef4444; /* Red dot for target */
+            border-radius: 50%;
+            box-shadow: 0 0 10px #ef4444, 0 0 20px #ef4444;
+            animation: ping 1.5s infinite;
+            z-index: 10;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 5px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Police Light Easter Egg -->
+    <div id="police-lights" class="police-lights"></div>
+
+    <!-- ENTRANCE GAME OVERLAY -->
+    <div id="entrance-overlay">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold tracking-widest text-emerald-400 mb-2 uppercase" style="letter-spacing: 0.3em;">JR Recovery</h1>
+            <p id="radar-status" class="text-slate-400 font-mono text-sm animate-pulse">SYSTEM INITIALIZING... SKIP TRACE ACTIVE</p>
+        </div>
+
+        <div class="radar-container mb-8">
+            <div class="radar-grid"></div>
+            <div class="radar-sweep pointer-events-none"></div>
+            <!-- The Blip (Target) -->
+            <div id="target-blip" class="blip z-10" style="top: 30%; left: 60%;" onclick="acquireTarget()"></div>
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div class="w-2 h-2 bg-emerald-500 rounded-full"></div>
+            </div>
+            <div class="absolute inset-0 border border-emerald-500/30 rounded-full m-8 pointer-events-none"></div>
+            <div class="absolute inset-0 border border-emerald-500/20 rounded-full m-16 pointer-events-none"></div>
+        </div>
+
+        <p class="text-emerald-500/70 text-sm font-mono max-w-xs text-center">
+            Identify and click the target blip on the radar to securely access the system.
+        </p>
+        
+        <button onclick="skipGame()" class="mt-8 text-slate-500 hover:text-white text-xs underline decoration-slate-600 transition-colors">
+            Skip Security & Enter Site
+        </button>
+    </div>
+
+    <!-- MAIN WEBSITE -->
+    <div id="main-site">
+        
+        <!-- Navigation -->
+        <nav class="bg-slate-900 text-white sticky top-0 z-40 shadow-lg">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-20 items-center">
+                    <div class="flex items-center cursor-pointer group" onclick="triggerEasterEgg()" title="Click me 3 times!">
+                        <i class="fa-solid fa-shield-halved text-amber-500 text-3xl mr-3 group-hover:scale-110 transition-transform"></i>
+                        <div>
+                            <span class="font-bold text-xl tracking-wider uppercase block">JR Recovery</span>
+                            <span class="text-xs text-slate-400 tracking-widest uppercase">Process Service</span>
+                        </div>
+                    </div>
+                    <div class="hidden md:flex space-x-8 text-sm font-semibold uppercase tracking-wide">
+                        <a href="#" class="hover:text-amber-500 transition-colors">Home</a>
+                        <a href="#about" class="hover:text-amber-500 transition-colors">About Us</a>
+                        <a href="#services" class="hover:text-amber-500 transition-colors">Services</a>
+                        <a href="#contact" class="hover:text-amber-500 transition-colors">Contact</a>
+                    </div>
+                    <div>
+                        <a href="tel:3158547079" class="bg-amber-600 hover:bg-amber-500 text-white px-6 py-2 rounded font-bold shadow-md transition-all flex items-center">
+                            <i class="fa-solid fa-phone mr-2"></i> (315) 854-7079
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <section class="relative bg-slate-900 text-white overflow-hidden">
+            <!-- Background Image overlay -->
+            <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-20"></div>
+            <div class="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/90 to-transparent"></div>
+            
+            <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 flex flex-col md:flex-row items-center">
+                <div class="md:w-2/3 pr-8">
+                    <div class="inline-block bg-slate-800 border border-slate-700 rounded-full px-4 py-1 text-xs font-semibold tracking-wide text-amber-400 mb-6 flex items-center w-max">
+                        <i class="fa-solid fa-star mr-2"></i> Led by a Former Police Officer
+                    </div>
+                    <h1 class="text-5xl md:text-6xl font-extrabold leading-tight mb-6">
+                        Trusted. Discrett. <br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-600">Results Driven.</span>
+                    </h1>
+                    <p class="text-xl text-slate-300 mb-10 max-w-2xl leading-relaxed">
+                        Comprehensive process serving, skip tracing, and vehicle repossession in Upstate New York. We deliver your documents and recover your assets with precision and complete confidentiality.
+                    </p>
+                    <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                        <a href="#contact" class="bg-amber-600 hover:bg-amber-500 text-white text-center px-8 py-4 rounded font-bold shadow-lg transition-all text-lg">
+                            Get A Free Quote
+                        </a>
+                        <a href="#services" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white text-center px-8 py-4 rounded font-bold transition-all text-lg">
+                            View All Services
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Badge Graphic -->
+                <div class="md:w-1/3 mt-16 md:mt-0 flex justify-center hidden md:flex">
+                    <div class="relative">
+                        <div class="absolute inset-0 bg-amber-500 blur-[100px] opacity-20 rounded-full"></div>
+                        <i class="fa-solid fa-file-contract text-9xl text-slate-700 opacity-50 absolute -top-10 -left-10 transform -rotate-12"></i>
+                        <i class="fa-solid fa-car-side text-9xl text-amber-500/20 absolute -bottom-10 -right-10"></i>
+                        <img src="https://images.unsplash.com/photo-1555848962-6e79363ec58f?auto=format&fit=crop&w=400&q=80" alt="Legal Documents" class="rounded-xl border-4 border-slate-800 shadow-2xl relative z-10 transform rotate-3 hover:rotate-0 transition-transform duration-500">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats/Trust Bar -->
+        <div class="bg-slate-800 border-b border-slate-700 py-6">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center divide-x divide-slate-700">
+                    <div>
+                        <div class="text-3xl text-amber-500 mb-2"><i class="fa-solid fa-user-shield"></i></div>
+                        <div class="text-white font-bold text-lg">PI on Staff</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl text-amber-500 mb-2"><i class="fa-solid fa-gavel"></i></div>
+                        <div class="text-white font-bold text-lg">Court Recommended</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl text-amber-500 mb-2"><i class="fa-solid fa-clock"></i></div>
+                        <div class="text-white font-bold text-lg">Always Open</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl text-amber-500 mb-2"><i class="fa-solid fa-map-location-dot"></i></div>
+                        <div class="text-white font-bold text-lg">Upstate NY Coverage</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Services Section -->
+        <section id="services" class="py-24 bg-slate-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <h2 class="text-amber-600 font-bold tracking-wider uppercase mb-2">Our Expertise</h2>
+                    <h3 class="text-4xl font-extrabold text-slate-900 mb-4">We Make Process Serving & Recovery Easy</h3>
+                    <p class="text-slate-600 text-lg">Whether you need legal documents served swiftly or outdoor toys repossessed, our experienced team handles every case with unmatched professionalism.</p>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-8">
+                    <!-- Service 1 -->
+                    <div class="bg-white rounded-xl shadow-md p-8 border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all">
+                        <div class="w-14 h-14 bg-slate-900 text-amber-500 rounded-lg flex items-center justify-center text-2xl mb-6 shadow-md">
+                            <i class="fa-solid fa-file-signature"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-slate-900 mb-3">Process Serving</h4>
+                        <p class="text-slate-600 mb-4">Prompt delivery of summons, complaints, divorce papers, subpoenas, family court documents, evictions, and foreclosures.</p>
+                        <ul class="text-sm text-slate-500 space-y-2">
+                            <li><i class="fa-solid fa-check text-emerald-500 mr-2"></i> Fast Turnaround</li>
+                            <li><i class="fa-solid fa-check text-emerald-500 mr-2"></i> Legal Compliance</li>
+                        </ul>
+                    </div>
+
+                    <!-- Service 2 -->
+                    <div class="bg-white rounded-xl shadow-md p-8 border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all">
+                        <div class="w-14 h-14 bg-slate-900 text-amber-500 rounded-lg flex items-center justify-center text-2xl mb-6 shadow-md">
+                            <i class="fa-solid fa-truck-pickup"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-slate-900 mb-3">Asset Repossession</h4>
+                        <p class="text-slate-600 mb-4">Safe and secure recovery of vehicles, campers, ATVs, motorcycles, snowmobiles, and other outdoor equipment.</p>
+                        <ul class="text-sm text-slate-500 space-y-2">
+                            <li><i class="fa-solid fa-check text-emerald-500 mr-2"></i> Damage-Free Towing</li>
+                            <li><i class="fa-solid fa-check text-emerald-500 mr-2"></i> Secure Storage</li>
+                        </ul>
+                    </div>
+
+                    <!-- Service 3 -->
+                    <div class="bg-white rounded-xl shadow-md p-8 border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all">
+                        <div class="w-14 h-14 bg-slate-900 text-amber-500 rounded-lg flex items-center justify-center text-2xl mb-6 shadow-md">
+                            <i class="fa-solid fa-magnifying-glass-location"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-slate-900 mb-3">Skip Tracing & Notary</h4>
+                        <p class="text-slate-600 mb-4">Locating elusive individuals with advanced skip tracing techniques. We also provide on-site notary and document retrieval.</p>
+                        <ul class="text-sm text-slate-500 space-y-2">
+                            <li><i class="fa-solid fa-check text-emerald-500 mr-2"></i> PI on Staff</li>
+                            <li><i class="fa-solid fa-check text-emerald-500 mr-2"></i> Complete Discretion</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="py-24 bg-white border-t border-slate-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col md:flex-row items-center gap-16">
+                    <div class="md:w-1/2">
+                        <img src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=800&q=80" alt="Professional Business Meeting" class="rounded-lg shadow-xl border-8 border-slate-50">
+                    </div>
+                    <div class="md:w-1/2">
+                        <h2 class="text-amber-600 font-bold tracking-wider uppercase mb-2">About Jamie R. Amo</h2>
+                        <h3 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-6">Experience You Can Trust.</h3>
+                        <p class="text-slate-600 mb-6 leading-relaxed">
+                            Led by Jamie R. Amo, a former police officer, JR Recovery Process Service brings unparalleled experience to the table. We understand the critical nature of legal timelines and the delicate handling required for asset recovery.
+                        </p>
+                        <div class="bg-slate-50 border-l-4 border-amber-500 p-6 rounded-r-lg mb-8 italic text-slate-700">
+                            "We will always answer the phone. No matter what time it is, if you need a rush service, do not hesitate to call." 
+                            <br><span class="font-bold block mt-2 not-italic text-slate-900">— Jamie, Owner & CEO</span>
+                        </div>
+                        <div class="flex space-x-6">
+                            <div class="flex items-center text-slate-700 font-bold">
+                                <i class="fa-solid fa-certificate text-emerald-600 text-2xl mr-2"></i> NYSPPSA Member
+                            </div>
+                            <div class="flex items-center text-slate-700 font-bold">
+                                <i class="fa-solid fa-certificate text-emerald-600 text-2xl mr-2"></i> NAPPS Member
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Coverage Area Banner -->
+        <section class="bg-slate-900 text-white py-16 border-t-4 border-amber-500">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h3 class="text-2xl font-bold mb-4">Serving Upstate New York</h3>
+                <p class="text-slate-400 mb-8 max-w-2xl mx-auto">We proudly provide our comprehensive services across St. Lawrence, Jefferson, and Franklin Counties. Click a region to initiate scan.</p>
+                <div class="flex flex-wrap justify-center gap-4">
+                    <button onclick="openMapModal('stlawrence')" class="px-6 py-3 bg-slate-800 hover:bg-slate-700 hover:border-emerald-500 hover:text-emerald-400 rounded-full border border-slate-700 shadow-inner transition-all group relative overflow-hidden">
+                        <span class="relative z-10 flex items-center"><i class="fa-solid fa-satellite-dish mr-2 opacity-50 group-hover:opacity-100 group-hover:animate-pulse transition-opacity"></i> St. Lawrence</span>
+                    </button>
+                    <button onclick="openMapModal('jefferson')" class="px-6 py-3 bg-slate-800 hover:bg-slate-700 hover:border-emerald-500 hover:text-emerald-400 rounded-full border border-slate-700 shadow-inner transition-all group relative overflow-hidden">
+                        <span class="relative z-10 flex items-center"><i class="fa-solid fa-satellite-dish mr-2 opacity-50 group-hover:opacity-100 group-hover:animate-pulse transition-opacity"></i> Jefferson</span>
+                    </button>
+                    <button onclick="openMapModal('franklin')" class="px-6 py-3 bg-slate-800 hover:bg-slate-700 hover:border-emerald-500 hover:text-emerald-400 rounded-full border border-slate-700 shadow-inner transition-all group relative overflow-hidden">
+                        <span class="relative z-10 flex items-center"><i class="fa-solid fa-satellite-dish mr-2 opacity-50 group-hover:opacity-100 group-hover:animate-pulse transition-opacity"></i> Franklin</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="py-24 bg-slate-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid md:grid-cols-2 gap-16">
+                    <div>
+                        <h2 class="text-3xl font-extrabold text-slate-900 mb-6">Get In Touch</h2>
+                        <p class="text-slate-600 mb-8">Ready to proceed? Contact us today for a free quote. We handle every inquiry with speed and absolute confidentiality.</p>
+                        
+                        <div class="space-y-6">
+                            <div class="flex items-start">
+                                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-amber-600 shadow-md border border-slate-100 flex-shrink-0">
+                                    <i class="fa-solid fa-location-dot text-xl"></i>
+                                </div>
+                                <div class="ml-4 pt-3">
+                                    <h4 class="text-slate-900 font-bold">Address</h4>
+                                    <p class="text-slate-600">615 Paterson Street<br>Ogdensburg, NY 13669</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-amber-600 shadow-md border border-slate-100 flex-shrink-0">
+                                    <i class="fa-solid fa-phone text-xl"></i>
+                                </div>
+                                <div class="ml-4 pt-3">
+                                    <h4 class="text-slate-900 font-bold">Phone</h4>
+                                    <p class="text-slate-600">(315) 854-7079<br><span class="text-sm text-slate-500">Fax: (315) 713-4627</span></p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-amber-600 shadow-md border border-slate-100 flex-shrink-0">
+                                    <i class="fa-solid fa-envelope text-xl"></i>
+                                </div>
+                                <div class="ml-4 pt-3">
+                                    <h4 class="text-slate-900 font-bold">Email</h4>
+                                    <p class="text-slate-600">jrrecovery12@gmail.com</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Form -->
+                    <div class="bg-white p-8 rounded-xl shadow-lg border border-slate-100">
+                        <form onsubmit="event.preventDefault(); alert('This is a prototype! Form submission would happen here.');">
+                            <div class="mb-6">
+                                <label class="block text-slate-700 text-sm font-bold mb-2" for="name">Full Name *</label>
+                                <input class="w-full px-4 py-3 rounded-lg bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white focus:outline-none transition-colors" id="name" type="text" required>
+                            </div>
+                            <div class="mb-6">
+                                <label class="block text-slate-700 text-sm font-bold mb-2" for="email">Email Address *</label>
+                                <input class="w-full px-4 py-3 rounded-lg bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white focus:outline-none transition-colors" id="email" type="email" required>
+                            </div>
+                            <div class="mb-6">
+                                <label class="block text-slate-700 text-sm font-bold mb-2" for="phone">Phone Number *</label>
+                                <input class="w-full px-4 py-3 rounded-lg bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white focus:outline-none transition-colors" id="phone" type="tel" required>
+                            </div>
+                            <div class="mb-6">
+                                <label class="block text-slate-700 text-sm font-bold mb-2" for="message">How can we help?</label>
+                                <textarea class="w-full px-4 py-3 rounded-lg bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white focus:outline-none transition-colors" id="message" rows="4"></textarea>
+                            </div>
+                            <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-colors">
+                                Send Message
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="bg-slate-950 text-slate-400 py-12 border-t border-slate-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0 text-center md:text-left">
+                    <span class="font-bold text-white tracking-widest uppercase">JR Recovery</span>
+                    <p class="text-sm mt-1">&copy; 2026 JR Recovery Process Service. All rights reserved.</p>
+                </div>
+                <div class="flex space-x-6">
+                    <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
+                    <a href="#" class="hover:text-white transition-colors">Terms of Service</a>
+                </div>
+            </div>
+            
+            <!-- C4 Technologies Footer Link -->
+            <div class="mt-12 pt-8 border-t border-slate-900 text-center flex justify-center w-full">
+                <button onclick="openC4Portal()" class="c4-xray-link bg-slate-900 border border-cyan-500/30 hover:border-cyan-400 rounded px-6 py-3 transition-colors group cursor-pointer shadow-[0_0_15px_rgba(6,182,212,0.1)] hover:shadow-[0_0_20px_rgba(6,182,212,0.3)]">
+                    <div class="c4-xray-scanner"></div>
+                    <span class="relative z-10 font-mono text-xs tracking-[0.2em] text-cyan-500 group-hover:text-cyan-300 transition-colors flex items-center">
+                        <i class="fa-solid fa-microchip mr-2"></i> THIS SITE IS DEVELOPED & MAINTAINED BY C4:TECHNOLOGIES
+                    </span>
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Map Radar Modal -->
+    <div id="map-modal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-sm items-center justify-center p-4">
+        <div class="bg-slate-900 rounded-xl max-w-3xl w-full border border-slate-700 shadow-2xl relative overflow-hidden">
+            
+            <!-- Header -->
+            <div class="flex justify-between items-center p-6 border-b border-slate-800 bg-slate-950/50">
+                <div>
+                    <h3 id="modal-county-title" class="text-2xl font-bold text-emerald-400 uppercase tracking-widest flex items-center">
+                        <i class="fa-solid fa-crosshairs mr-3 animate-spin" style="animation-duration: 4s;"></i> <span>County Name</span>
+                    </h3>
+                    <p class="text-slate-500 font-mono text-xs mt-1 animate-pulse tracking-widest">SCANNING SECTOR FOR ASSETS...</p>
+                </div>
+                <button onclick="closeMapModal()" class="text-slate-500 hover:text-white transition-colors p-2">
+                    <i class="fa-solid fa-xmark text-2xl"></i>
+                </button>
+            </div>
+            
+            <!-- Radar Container -->
+            <div class="p-6">
+                <div class="map-container relative w-full rounded border border-emerald-500/30 shadow-[0_0_30px_rgba(16,185,129,0.15)]">
+                    <!-- Tech Background Grid -->
+                    <div class="absolute inset-0 bg-[linear-gradient(rgba(16,185,129,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(16,185,129,0.1)_1px,transparent_1px)] bg-[size:30px_30px] z-0"></div>
+                    
+                    <!-- Radar Sweep Element -->
+                    <div class="map-radar-sweep"></div>
+
+                    <!-- Stylized SVG Maps (Hidden by default) -->
+                    <!-- St. Lawrence -->
+                    <svg id="svg-stlawrence" class="svg-map hidden" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+                        <path d="M 25 35 Q 40 20 60 10 Q 75 25 90 45 Q 85 70 65 90 Q 30 85 10 60 Q 5 45 25 35 Z" />
+                    </svg>
+                    <!-- Jefferson -->
+                    <svg id="svg-jefferson" class="svg-map hidden" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+                        <path d="M 40 10 Q 60 15 80 30 Q 90 60 70 85 Q 40 95 15 65 Q 10 35 40 10 Z" />
+                    </svg>
+                    <!-- Franklin -->
+                    <svg id="svg-franklin" class="svg-map hidden" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+                        <path d="M 35 10 L 75 15 L 70 90 L 30 85 Z" />
+                    </svg>
+                    
+                    <!-- Container for dynamic red target blips -->
+                    <div id="map-targets"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- C4:TECHNOLOGIES MASSIVE RADAR PORTAL -->
+    <div id="c4-portal" class="fixed inset-0 z-[150] bg-black items-center justify-center overflow-hidden">
+        <!-- Massive Radar Background -->
+        <div class="massive-radar"></div>
+        <div class="massive-sweep"></div>
+        <div class="absolute inset-0 bg-[linear-gradient(rgba(6,182,212,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,0.05)_1px,transparent_1px)] bg-[size:40px_40px] z-0 pointer-events-none"></div>
+
+        <!-- Portal Interface -->
+        <div class="relative z-10 w-full max-w-5xl px-4 flex flex-col items-center">
+            
+            <!-- Header -->
+            <div class="text-center mb-10">
+                <h1 class="text-5xl md:text-7xl font-black tracking-[0.3em] text-cyan-400 mb-2 drop-shadow-[0_0_15px_rgba(6,182,212,0.8)]">C4:TECHNOLOGIES</h1>
+                <p class="text-cyan-500/70 font-mono tracking-widest animate-pulse">GLOBAL ASSET RECOVERY NETWORK ONLINE</p>
+            </div>
+
+            <!-- Terminal Data Stream -->
+            <div class="w-full bg-slate-950/80 border border-cyan-500/50 rounded-lg p-6 mb-12 h-64 md:h-80 relative overflow-hidden shadow-[0_0_30px_rgba(6,182,212,0.2)] backdrop-blur-sm">
+                <div class="absolute top-0 left-0 w-full h-8 bg-gradient-to-b from-slate-950 to-transparent z-10 pointer-events-none"></div>
+                <div class="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-t from-slate-950 to-transparent z-10 pointer-events-none"></div>
+                
+                <div id="c4-terminal-stream" class="font-mono text-xs md:text-sm text-cyan-300 space-y-2 flex flex-col justify-end h-full w-full">
+                    <!-- Lines added via JS -->
+                </div>
+            </div>
+
+            <!-- Action Controls -->
+            <div class="flex flex-col items-center gap-8 w-full">
+                <a href="https://patrick-lake.vercel.app" target="_blank" class="w-full md:w-auto relative group overflow-hidden bg-cyan-950 border border-cyan-400 text-cyan-400 px-10 py-5 rounded-sm hover:bg-cyan-400 hover:text-black transition-all duration-300 shadow-[0_0_20px_rgba(6,182,212,0.4)] text-center">
+                    <span class="block text-xl font-bold tracking-widest uppercase mb-1">C4:Technologies Development Center</span>
+                    <span class="block text-xs font-mono opacity-80">( CLICK TO ENTER SECTOR )</span>
+                </a>
+
+                <button onclick="closeC4Portal()" class="group flex items-center text-red-500 hover:text-red-400 font-mono text-sm border border-red-500/30 bg-red-950/30 hover:bg-red-900/40 px-6 py-2 rounded transition-all">
+                    <i class="fa-solid fa-triangle-exclamation mr-3 group-hover:animate-ping"></i>
+                    [ ABORT / OVERRIDE : RETURN TO JR RECOVERY ]
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- JavaScript for Game & Interactivity -->
+    <script>
+        // Entrance Game Logic
+        const radarStatus = document.getElementById('radar-status');
+        const blip = document.getElementById('target-blip');
+        const overlay = document.getElementById('entrance-overlay');
+        const mainSite = document.getElementById('main-site');
+
+        // Make the blip appear after a random short delay to simulate scanning
+        setTimeout(() => {
+            radarStatus.innerText = "TARGET LOCATED. CLICK TO ACQUIRE.";
+            radarStatus.classList.remove('text-slate-400');
+            radarStatus.classList.add('text-amber-400');
+            blip.classList.add('active');
+            
+            // Randomize position slightly for fun
+            const randomTop = Math.floor(Math.random() * 60) + 20; // 20% to 80%
+            const randomLeft = Math.floor(Math.random() * 60) + 20;
+            blip.style.top = randomTop + '%';
+            blip.style.left = randomLeft + '%';
+
+        }, 2000);
+
+        function acquireTarget() {
+            radarStatus.innerText = "TARGET ACQUIRED. BYPASSING FIREWALL...";
+            radarStatus.classList.remove('text-amber-400');
+            radarStatus.classList.add('text-emerald-400');
+            blip.style.backgroundColor = '#fff';
+            blip.classList.remove('active');
+            
+            setTimeout(() => {
+                enterSite();
+            }, 800);
+        }
+
+        function skipGame() {
+            enterSite();
+        }
+
+        function enterSite() {
+            overlay.style.opacity = '0';
+            overlay.style.transform = 'scale(1.1)';
+            
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                mainSite.style.visibility = 'visible';
+                mainSite.style.opacity = '1';
+                document.body.style.overflowY = 'auto'; // allow scrolling now
+            }, 1000);
+        }
+
+        // Lock scrolling while on entrance screen
+        document.body.style.overflowY = 'hidden';
+
+
+        // Map Modal Logic
+        function openMapModal(county) {
+            const modal = document.getElementById('map-modal');
+            const titleSpan = document.querySelector('#modal-county-title span');
+            
+            // Hide all map SVGs first
+            document.querySelectorAll('.svg-map').forEach(svg => svg.classList.add('hidden'));
+            
+            // Clear previous target blips
+            const targetsContainer = document.getElementById('map-targets');
+            targetsContainer.innerHTML = '';
+
+            // Show selected county map & update title
+            if(county === 'stlawrence') {
+                titleSpan.innerText = 'St. Lawrence County';
+                document.getElementById('svg-stlawrence').classList.remove('hidden');
+            } else if (county === 'jefferson') {
+                titleSpan.innerText = 'Jefferson County';
+                document.getElementById('svg-jefferson').classList.remove('hidden');
+            } else if (county === 'franklin') {
+                titleSpan.innerText = 'Franklin County';
+                document.getElementById('svg-franklin').classList.remove('hidden');
+            }
+
+            // Generate 2 to 4 random red target blips inside the map
+            const numBlips = Math.floor(Math.random() * 3) + 2; 
+            for(let i = 0; i < numBlips; i++) {
+                const blip = document.createElement('div');
+                blip.className = 'map-blip';
+                // Keep blips mostly central so they look like they are inside the county borders
+                blip.style.top = (Math.random() * 40 + 30) + '%'; 
+                blip.style.left = (Math.random() * 40 + 30) + '%';
+                // Randomize pulse animation delay so they blink uniquely
+                blip.style.animationDelay = (Math.random() * 1) + 's';
+                targetsContainer.appendChild(blip);
+            }
+
+            // Show Modal and lock background scroll
+            modal.classList.add('active');
+            document.body.style.overflowY = 'hidden';
+        }
+
+        function closeMapModal() {
+            const modal = document.getElementById('map-modal');
+            modal.classList.remove('active');
+            document.body.style.overflowY = 'auto'; // restore scroll
+        }
+
+
+        // C4 Technologies Portal Logic
+        let terminalInterval;
+
+        function openC4Portal() {
+            const portal = document.getElementById('c4-portal');
+            portal.classList.add('active');
+            document.body.style.overflowY = 'hidden';
+
+            // Start fake data stream
+            const terminal = document.getElementById('c4-terminal-stream');
+            terminal.innerHTML = ''; // clear existing
+            
+            const prefixes = ['[RECOVERED]', '[DECRYPTED]', '[SECURED]', '[LOCATED]'];
+            const assetTypes = ['DIGITAL_LEDGER', 'ENCRYPTED_DRIVE', 'OFFSHORE_ARCHIVE', 'SERVER_NODE', 'COMM_LOG'];
+            
+            terminalInterval = setInterval(() => {
+                const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+                const type = assetTypes[Math.floor(Math.random() * assetTypes.length)];
+                const id = Math.random().toString(36).substring(2, 10).toUpperCase();
+                const ip = `${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.XXX`;
+                
+                const line = document.createElement('div');
+                line.className = 'opacity-0 translate-y-4 transition-all duration-300 ease-out flex justify-between';
+                
+                // Color code the prefix
+                let prefixHtml = `<span class="text-emerald-400">${prefix}</span>`;
+                if(prefix === '[LOCATED]') prefixHtml = `<span class="text-amber-400">${prefix}</span>`;
+                
+                line.innerHTML = `
+                    <span>${prefixHtml} ASSET_${type} // ID:${id}</span>
+                    <span class="opacity-50 hidden sm:block">TRACE_IP: ${ip}</span>
+                `;
+                
+                terminal.appendChild(line);
+                
+                // Trigger animation frame for fade-in
+                requestAnimationFrame(() => {
+                    line.classList.remove('opacity-0', 'translate-y-4');
+                });
+
+                // Keep only last 10 lines to prevent DOM bloat
+                if(terminal.children.length > 10) {
+                    terminal.removeChild(terminal.firstChild);
+                }
+            }, 800);
+        }
+
+        function closeC4Portal() {
+            const portal = document.getElementById('c4-portal');
+            portal.classList.remove('active');
+            document.body.style.overflowY = 'auto';
+            clearInterval(terminalInterval);
+        }
+
+        // Easter Egg Logic
+        let logoClicks = 0;
+        let easterEggTimeout;
+
+        function triggerEasterEgg() {
+            logoClicks++;
+            
+            clearTimeout(easterEggTimeout);
+            easterEggTimeout = setTimeout(() => {
+                logoClicks = 0; // reset if they stop clicking
+            }, 2000);
+
+            if (logoClicks === 3) {
+                const lights = document.getElementById('police-lights');
+                lights.style.display = 'block';
+                
+                // Optional: Play a sound effect if desired, omitted for browser autoplay safety
+                
+                setTimeout(() => {
+                    lights.style.display = 'none';
+                    logoClicks = 0;
+                }, 5000); // Turn off after 5 seconds
+            }
+        }
+    </script>
+</body>
+</html>
