@@ -74,14 +74,15 @@
 
         .blip {
             position: absolute;
-            width: 12px;
-            height: 12px;
+            width: 16px; /* Slightly larger for easier clicking */
+            height: 16px;
             background-color: #10b981;
             border-radius: 50%;
-            box-shadow: 0 0 10px #10b981, 0 0 20px #10b981;
+            box-shadow: 0 0 15px #10b981, 0 0 30px #10b981;
             cursor: pointer;
             opacity: 0;
             transition: transform 0.2s;
+            z-index: 50; /* Forces it above everything else */
         }
 
         .blip:hover {
@@ -89,14 +90,16 @@
             background-color: #34d399;
         }
 
-        @keyframes ping {
+        /* Renamed to avoid conflicting with Tailwind's built-in animations */
+        @keyframes radar-pulse {
             0% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(1.2); }
+            50% { opacity: 0.5; transform: scale(1.3); }
             100% { opacity: 1; transform: scale(1); }
         }
 
         .blip.active {
-            animation: ping 1.5s infinite;
+            opacity: 1 !important; /* Guarantees visibility */
+            animation: radar-pulse 1.5s infinite;
         }
 
         /* Main Site Content */
