@@ -561,8 +561,8 @@
                     <p class="text-sm mt-1">&copy; 2026 JR Recovery Process Service. All rights reserved.</p>
                 </div>
                 <div class="flex space-x-6">
-                    <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
-                    <a href="#" class="hover:text-white transition-colors">Terms of Service</a>
+                    <button onclick="openDocument('privacy')" class="hover:text-white transition-colors text-sm cursor-pointer">Privacy Policy</button>
+                    <button onclick="openDocument('tos')" class="hover:text-white transition-colors text-sm cursor-pointer">Terms of Service</button>
                 </div>
             </div>
             
@@ -669,6 +669,7 @@
 
     <!-- JavaScript for Game & Interactivity -->
     <script>
+    
         // Entrance Game Logic
         const radarStatus = document.getElementById('radar-status');
         const blip = document.getElementById('target-blip');
@@ -770,7 +771,85 @@
             document.body.style.overflowY = 'auto'; // restore scroll
         }
 
+<div id="document-modal" class="fixed inset-0 z-[100] bg-slate-950/90 backdrop-blur-sm items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300 flex">
+        <div class="bg-slate-900 rounded-xl max-w-4xl w-full border border-slate-700 shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
+            
+            <div class="flex justify-between items-center p-6 border-b border-slate-800 bg-slate-950/80">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded bg-slate-800 border border-slate-700 flex items-center justify-center text-amber-500 mr-4 shadow-inner">
+                        <i class="fa-solid fa-file-shield text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 id="doc-title" class="text-2xl font-bold text-white tracking-wider uppercase">Document Title</h3>
+                        <p class="text-slate-500 font-mono text-xs mt-1">SECURE LEGAL PROTOCOL // NYS JURISDICTION</p>
+                    </div>
+                </div>
+                <button onclick="closeDocument()" class="text-slate-500 hover:text-white transition-colors p-2 bg-slate-800 hover:bg-slate-700 rounded-lg">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-8 overflow-y-auto custom-scrollbar text-slate-300 text-sm leading-relaxed" id="doc-content">
+                </div>
+            
+            <div class="p-6 border-t border-slate-800 bg-slate-950/50 flex justify-end">
+                <button onclick="closeDocument()" class="bg-slate-800 hover:bg-slate-700 text-white px-6 py-2 rounded border border-slate-700 transition-colors font-bold text-sm tracking-wide">
+                    ACKNOWLEDGE & CLOSE
+                </button>
+            </div>
+        </div>
+    </div>
 
+    <div id="content-privacy" class="hidden">
+        <h4 class="text-lg text-white font-bold mb-4 border-b border-slate-700 pb-2">Privacy Policy</h4>
+        <p class="mb-4"><strong>Effective Date:</strong> January 1, 2026</p>
+        <p class="mb-4">JR Recovery Process Service ("we," "our," or "us") is committed to protecting the privacy and security of the information entrusted to us by our clients, courts, and the individuals we interact with during the course of our investigations, process serving, and asset recovery operations. This policy complies with applicable New York State and federal privacy regulations.</p>
+        
+        <h5 class="text-amber-500 font-bold mt-6 mb-2">1. Information We Collect</h5>
+        <ul class="list-disc pl-5 space-y-2 mb-4">
+            <li><strong>Client Information:</strong> Names, business details, billing addresses, and contact information of the law firms, creditors, or individuals hiring us.</li>
+            <li><strong>Subject Information:</strong> Data necessary to execute legal process or recover assets, including target names, known addresses, vehicle identification numbers (VINs), employment details, and skip-tracing data obtained through lawful investigative databases.</li>
+            <li><strong>Digital Data:</strong> Standard website analytics, IP addresses, and communication logs submitted through our secure online portals.</li>
+        </ul>
+
+        <h5 class="text-amber-500 font-bold mt-6 mb-2">2. How We Use Information</h5>
+        <p class="mb-4">Information is utilized strictly for the execution of contracted services. This includes locating individuals for the service of legal documents (summons, subpoenas, family court documents), tracking and recovering collateral/assets, executing court-ordered evictions, and providing notarized affidavits of service to the court. <strong>We do not sell, rent, or lease personal data to third parties for marketing purposes under any circumstances.</strong></p>
+
+        <h5 class="text-amber-500 font-bold mt-6 mb-2">3. Information Sharing & Disclosure</h5>
+        <p class="mb-4">We only disclose information when legally required or necessary to fulfill a contract. This includes sharing affidavits of service with the respective courts, returning recovery data to the contracted creditor, or cooperating with local law enforcement agencies when mandated by law.</p>
+
+        <h5 class="text-amber-500 font-bold mt-6 mb-2">4. Data Security & Retention</h5>
+        <p class="mb-4">Led by a former law enforcement officer, our agency treats data security with the highest operational priority. Physical documents are secured in locked, restricted-access facilities. Digital data is encrypted and stored on secure servers. Data related to completed cases is retained only as long as legally required by New York State regulations regarding process server record-keeping, after which it is securely destroyed.</p>
+
+        <p class="mt-8 pt-4 border-t border-slate-800 text-xs text-slate-500">For inquiries regarding this policy, contact JR Recovery at jrrecovery12@gmail.com.</p>
+    </div>
+
+    <div id="content-tos" class="hidden">
+        <h4 class="text-lg text-white font-bold mb-4 border-b border-slate-700 pb-2">Terms of Service</h4>
+        <p class="mb-4"><strong>Effective Date:</strong> January 1, 2026</p>
+        <p class="mb-4">By engaging JR Recovery Process Service ("the Agency") for process serving, skip tracing, or asset recovery (repossession), you ("the Client") agree to the following terms and conditions. These terms ensure legal compliance and outline operational expectations.</p>
+
+        <h5 class="text-amber-500 font-bold mt-6 mb-2">1. Scope of Services & Guarantees</h5>
+        <p class="mb-4">The Agency agrees to perform assigned services diligently, legally, and professionally. While we utilize advanced investigative techniques and leverage our law enforcement background, <strong>we do not guarantee specific outcomes.</strong> We cannot guarantee that an elusive subject will be successfully served, nor can we guarantee that an asset will be successfully located and recovered. You are compensating the Agency for our time, expertise, and operational attempts.</p>
+
+        <h5 class="text-amber-500 font-bold mt-6 mb-2">2. Client Responsibilities & Warrants</h5>
+        <p class="mb-4">The Client warrants that they have the legal right, valid court order, or valid lien/security interest required to authorize the requested service or repossession. The Client agrees to provide accurate and complete information to the best of their knowledge. The Agency is not liable for delays, failed attempts, or legal repercussions resulting from false, outdated, or incomplete information provided by the Client.</p>
+
+        <h5 class="text-amber-500 font-bold mt-6 mb-2">3. Fees, Billing, and "Attempts"</h5>
+        <ul class="list-disc pl-5 space-y-2 mb-4">
+            <li><strong>Service Fees:</strong> Standard rates apply to specific geographic zones (St. Lawrence, Jefferson, Franklin counties). "Rush" or "Same-Day" services incur additional priority fees.</li>
+            <li><strong>Non-Refundable Attempts:</strong> Fees for process serving and skip tracing are strictly for the *attempt* to execute the service. If an address provided is vacant, or a subject successfully evades lawful service after the agreed-upon number of attempts, the fee remains fully earned and non-refundable.</li>
+            <li><strong>Asset Recovery Storage:</strong> Recovered assets (vehicles, ATVs, etc.) may be subject to daily secure storage fees until retrieved by the creditor or authorized transport.</li>
+        </ul>
+
+        <h5 class="text-amber-500 font-bold mt-6 mb-2">4. Limitation of Liability & Indemnification</h5>
+        <p class="mb-4">To the maximum extent permitted by New York State law, the Agency shall not be held liable for indirect, incidental, or consequential damages arising from the execution of our duties. The Client agrees to indemnify, defend, and hold harmless JR Recovery, its owner (Jamie R. Amo), agents, and employees from any claims, damages, or lawsuits arising from the lawful execution of the Client's requested services.</p>
+
+        <h5 class="text-amber-500 font-bold mt-6 mb-2">5. Governing Law</h5>
+        <p class="mb-4">These Terms shall be governed by and construed in accordance with the laws of the State of New York. Any disputes shall be resolved in the appropriate courts located within St. Lawrence County, NY.</p>
+    </div>
+
+        
         // C4 Technologies Portal Logic
         let terminalInterval;
 
@@ -848,6 +927,44 @@
                     logoClicks = 0;
                 }, 5000); // Turn off after 5 seconds
             }
+        }
+
+        // Document Modal Logic (Privacy & TOS)
+        function openDocument(type) {
+            const modal = document.getElementById('document-modal');
+            const title = document.getElementById('doc-title');
+            const contentArea = document.getElementById('doc-content');
+            
+            // Set content based on type
+            if (type === 'privacy') {
+                title.innerText = 'PRIVACY POLICY';
+                contentArea.innerHTML = document.getElementById('content-privacy').innerHTML;
+            } else if (type === 'tos') {
+                title.innerText = 'TERMS OF SERVICE';
+                contentArea.innerHTML = document.getElementById('content-tos').innerHTML;
+            }
+
+            // Show and animate in
+            modal.classList.remove('hidden');
+            // Small delay to allow display:flex to apply before changing opacity for smooth fade
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+            }, 10);
+            
+            document.body.style.overflowY = 'hidden'; // Lock background scrolling
+        }
+
+        function closeDocument() {
+            const modal = document.getElementById('document-modal');
+            
+            // Animate out
+            modal.classList.add('opacity-0');
+            
+            // Wait for fade transition to finish before hiding
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.body.style.overflowY = 'auto'; // Restore background scrolling
+            }, 300);
         }
     </script>
 </body>
