@@ -530,29 +530,66 @@
                                 </div>
                             </a>
                         </div>
-                    </div> <div class="bg-white p-8 rounded-xl shadow-lg border border-slate-100">
-                        <form onsubmit="event.preventDefault(); alert('This is a prototype! Form submission would happen here.');">
-                            <div class="mb-6">
-                                <label class="block text-slate-700 text-sm font-bold mb-2" for="name">Full Name *</label>
-                                <input class="w-full px-4 py-3 rounded-lg bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white focus:outline-none transition-colors" id="name" type="text" required>
+                    <div class="bg-white p-8 rounded-xl shadow-lg border border-slate-100 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-amber-500 to-amber-700"></div>
+                        <div class="mb-8 flex items-center border-b border-slate-100 pb-4">
+                            <i class="fa-solid fa-lock text-slate-400 mr-3"></i>
+                            <div>
+                                <h3 class="text-lg font-bold text-slate-900 uppercase tracking-wide">Secure Case Intake</h3>
+                                <p class="text-xs text-slate-500 font-mono mt-1">END-TO-END ENCRYPTION ENABLED</p>
                             </div>
-                            <div class="mb-6">
-                                <label class="block text-slate-700 text-sm font-bold mb-2" for="email">Email Address *</label>
-                                <input class="w-full px-4 py-3 rounded-lg bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white focus:outline-none transition-colors" id="email" type="email" required>
+                        </div>
+
+                        <form onsubmit="event.preventDefault(); alert('Intake Form Submitted. Tracking ID generated.');">
+                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label class="block text-slate-700 text-xs font-bold mb-2 uppercase" for="name">Requestor Name *</label>
+                                    <input class="w-full px-3 py-2 rounded bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white focus:outline-none transition-colors text-sm" id="name" type="text" required>
+                                </div>
+                                <div>
+                                    <label class="block text-slate-700 text-xs font-bold mb-2 uppercase" for="firm">Firm / Creditor</label>
+                                    <input class="w-full px-3 py-2 rounded bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white focus:outline-none transition-colors text-sm" id="firm" type="text" placeholder="Optional">
+                                </div>
                             </div>
-                            <div class="mb-6">
-                                <label class="block text-slate-700 text-sm font-bold mb-2" for="phone">Phone Number *</label>
-                                <input class="w-full px-4 py-3 rounded-lg bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white focus:outline-none transition-colors" id="phone" type="tel" required>
+                            
+                            <div class="mb-4">
+                                <label class="block text-slate-700 text-xs font-bold mb-2 uppercase" for="email">Contact Email *</label>
+                                <input class="w-full px-3 py-2 rounded bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white focus:outline-none transition-colors text-sm" id="email" type="email" required>
                             </div>
-                            <div class="mb-6">
-                                <label class="block text-slate-700 text-sm font-bold mb-2" for="message">How can we help?</label>
-                                <textarea class="w-full px-4 py-3 rounded-lg bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white focus:outline-none transition-colors" id="message" rows="4"></textarea>
+
+                            <div class="grid grid-cols-2 gap-4 mb-4 mt-6 border-t border-slate-100 pt-4">
+                                <div>
+                                    <label class="block text-slate-700 text-xs font-bold mb-2 uppercase" for="service-type">Service Type *</label>
+                                    <select class="w-full px-3 py-2 rounded bg-slate-50 border border-slate-200 focus:border-amber-500 focus:outline-none text-sm appearance-none" id="service-type" required>
+                                        <option value="" disabled selected>Select Action...</option>
+                                        <option value="process">Process Serving</option>
+                                        <option value="repo">Asset Repossession</option>
+                                        <option value="skip">Skip Tracing</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-slate-700 text-xs font-bold mb-2 uppercase" for="rush-level">SLA Priority *</label>
+                                    <select class="w-full px-3 py-2 rounded bg-slate-50 border border-slate-200 focus:border-amber-500 focus:outline-none text-sm appearance-none" id="rush-level" required>
+                                        <option value="standard">Standard (3-5 Days)</option>
+                                        <option value="rush">Rush (24-48 Hours)</option>
+                                        <option value="same-day">Same-Day / Emergency</option>
+                                    </select>
+                                </div>
                             </div>
-                            <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-colors">
-                                Send Message
+
+                            <div class="mb-6">
+                                <label class="block text-slate-700 text-xs font-bold mb-2 uppercase" for="details">Target Details / Collateral Info *</label>
+                                <textarea class="w-full px-3 py-2 rounded bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white focus:outline-none transition-colors text-sm" id="details" rows="3" placeholder="Provide jurisdiction, addresses, or VIN numbers..." required></textarea>
+                            </div>
+
+                            <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-4 rounded shadow-md transition-colors flex justify-center items-center group">
+                                <i class="fa-solid fa-file-arrow-up mr-2 group-hover:-translate-y-1 transition-transform"></i> Initiate Secure Intake
                             </button>
+                            <p class="text-center text-[10px] text-slate-400 mt-3 font-mono">ALL DATA TRANSMITTED VIA SECURE PROTOCOL</p>
                         </form>
-                    </div> </div>
+                    </div> ```
+
+Let me know if you need help slotting that in!
             </div>
         </section>
 
